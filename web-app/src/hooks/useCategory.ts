@@ -14,20 +14,20 @@ const CATEGORY_KEYS = {
    Queries
 ========================= */
 
-export function useCategories() {
-    return useQuery<Category[]>({
-        queryKey: CATEGORY_KEYS.all,
-        queryFn: async () => {
-            const res = await CategoryAPI.list();
+export function useCategories(page = 1, perPage = 10) {
+  return useQuery({
+    queryKey: ['categories', page, perPage],
+    queryFn: async () => {
+      const res = await CategoryAPI.list(page, perPage);
 
-            if (!res.success) {
-                throw new Error(res.message || 'Failed to fetch categories');
-            }
+      if (!res.success || !res.data) {
+        throw new Error(res.message || 'Failed to fetch categories');
+       }
 
-            // 🔴 IMPORTANT: unwrap backend response
-            return Array.isArray(res.data) ? res.data : [];
-        },
-    });
+      return res.data; // { data, meta }
+    },
+    keepPreviousData: true,
+  });
 }
 
 export function useCategory(id: number) {

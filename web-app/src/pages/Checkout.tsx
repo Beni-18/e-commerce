@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { Link } from 'react-router-dom';
+import { useCreateOrder } from '../hooks/useOrder';
+import { useNavigate } from 'react-router-dom';
+
 import {
   CreditCard,
   Truck,
@@ -47,7 +50,8 @@ export default function Checkout() {
   ];
 
   const { items, subtotal } = useCart();
-
+  const createOrder = useCreateOrder();
+  const navigate = useNavigate();
   const shipping = subtotal > 999 ? 0 : 50;
   const tax = subtotal * 0.18; // 18% GST
   const total = subtotal + shipping + tax;
@@ -62,10 +66,26 @@ export default function Checkout() {
     setCurrentStep('review');
   };
 
-  const handlePlaceOrder = () => {
-    // Handle order placement
-    console.log('Order placed!', { shippingInfo, paymentInfo, items });
-  };
+  const handlePlaceOrder = async () => {
+  try {
+    await createOrder.mutateAsync({
+      order: {
+        status: 'pending',
+        payment_status: 'paid',
+        tax,
+        shipping_fee: shipping,
+      },
+      items: items.map(item => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+      })),
+    });
+
+    navigate('/profile?tab=orders');
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const getCurrentStepIndex = () => steps.findIndex(s => s.id === currentStep);
 

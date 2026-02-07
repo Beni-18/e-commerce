@@ -43,9 +43,17 @@ export const CategoryAPI = {
     /**
      * GET /api/v1/categories
      */
-    list() {
-    return apiService.get<{ data: Category[] }>(BASE_PATH);
-    },
+    list(page = 1, perPage = 10) {
+  return apiService.get<{
+    data: Category[];
+    meta: {
+      current_page: number;
+      per_page: number;
+      total_pages: number;
+      total_count: number;
+    };
+  }>(`${BASE_PATH}?page=${page}&per_page=${perPage}`);
+},
 
     /**
      * GET /api/v1/categories/:id
